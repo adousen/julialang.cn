@@ -11,7 +11,7 @@ def parent_dir(path):
 
 class Config:
     REPO_NAME = "goodwordalchemy.github.io"  # Used for FREEZER_BASE_URL
-    DEBUG = True
+    DEBUG = False
 
     APP_DIR = basedir
 

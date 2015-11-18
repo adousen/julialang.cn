@@ -5,5 +5,5 @@
 {% block page_content %}
 {% include "website/_includes/title.html" %}
 {% include "website/_includes/links.html" %}
-{{ page }}
+    {{ content|safe }}
 {% endblock %}

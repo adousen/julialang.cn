@@ -8,7 +8,7 @@ In addition, the Julia developer community is contributing a number of [external
 
 [JuliaCon 2015](http://juliacon.org/2015) at MIT was a huge success. The [videos](https://www.youtube.com/playlist?list=PLP8iPy9hna6Sdx4soiGrSefrmOPdUWixM) are now online, and a random video from JuliaCon 2015 is presented here.
 
-{% include juliacon-player-2015.html %}
+{% include "website/_includes/juliacon-player-2015.html" %}
 
 Julia programs are organized around [multiple dispatch](http://docs.julialang.org/en/release-0.3/manual/methods/#man-methods); by defining functions and overloading them for different combinations of argument types, which can also be user-defined.
 For a more in-depth discussion of the rationale and advantages of Julia over other systems, see the following highlights or read the [introduction](http://docs.julialang.org/en/release-0.3/manual/introduction/) in the [online manual](http://docs.julialang.org).
@@ -50,7 +50,7 @@ We encourage you to skim the code to get a sense for how easy or difficult numer
 The following micro-benchmark results were obtained on a single core (serial execution) on an Intel(R) Xeon(R) CPU E7-8850 2.00GHz CPU with 1TB of 1067MHz DDR3 RAM, running Linux:
 
 <div class="figure">
-{% include benchmarks.html %}
+{% include "website/_includes/benchmarks.html" %}
 <p class="caption"><b>Figure:</b>
 benchmark times relative to C (smaller is better, C performance = 1.0).
 </p>
@@ -75,7 +75,7 @@ Raw benchmark numbers in CSV format are available [here](/benchmarks.csv).
 
 To give a quick taste of what Julia looks like, here is the code used in the Mandelbrot and random matrix statistics benchmarks:
 
-{% highlight julia %}
+{% highlight 'julia' %}
 function mandel(z)
     c = z
     maxiter = 80
@@ -117,7 +117,7 @@ Julia does not impose any particular style of parallelism on the user.
 Instead, it provides a number of [key building blocks for distributed computation](/manual/parallel-computing), making it flexible enough to support a number of styles of parallelism, and allowing users to add more.
 The following simple example demonstrates how to count the number of heads in a large number of coin tosses in parallel.
 
-{% highlight julia %}
+{% highlight 'julia' %}
 nheads = @parallel (+) for i=1:100000000
   int(randbool())
 end
@@ -127,14 +127,14 @@ This computation is automatically distributed across all available compute nodes
 
 Here is a screenshot of a web-based interactive [IJulia Notebook](https://github.com/JuliaLang/IJulia.jl) session, using [Gadfly](https://github.com/dcjones/Gadfly.jl). [JuliaBox](http://www.juliabox.org) provides a way to run IJulia notebooks in your browser on Docker sandboxed containers provisioned on demand.
 
-<a href="/images/ijulia.png" target="_blank"><img class="u-center" src="/images/ijulia.png" width="90%" /></a>
+<a href="/images/ijulia.png" target="_blank"><img class="u-center" src="{{ url_for('website.static', filename='images/ijulia.png')}}" width="90%" /></a>
 
 This paves the way for fully cloud-based operation, including data management, code editing and sharing, execution, debugging, collaboration, analysis, data exploration, and visualization.
 The eventual goal is to let people stop worrying about administering machines and managing data and get straight to the real problem.
 
 [Gadfly](https://github.com/dcjones/Gadfly.jl) can produce various plots with various rendering backends in the browser (SVG, PDF, PNG and various other backends are also supported). Interactivity can be added to graphs and plots with the [Interact.jl](https://github.com/JuliaLang/Interact.jl) package. A small sampling of the capabilities of Gadfly is presented below.
 
-<a href="/images/gadfly-demo.png" target="_blank"><img src="/images/gadfly-demo.png" width="100%" /></a>
+<a href="/images/gadfly-demo.png" target="_blank"><img src="{{ url_for('website.static', filename='images/gadfly-demo.png')}}" width="100%" /></a>
 
 # Free, Open Source and Library-Friendly
 
