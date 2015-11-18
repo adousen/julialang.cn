@@ -11,5 +11,6 @@ This is a static site blog like Jekyll for Github pages, but it uses python and 
     2. reimplement .git folder using direction on the [github pages site](https://pages.github.com/)
 
 ##Use
-1.`python manage.py runserver`
+
+1. `python manage.py runserver`
 2. visit `http://localhost:5000`
