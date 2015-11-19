@@ -23,11 +23,11 @@ def home():
 
 
 @website.route('/<any(downloads, community, learning, teaching, publications, jsoc):category>/')
-@website.route('/downloads/<path:path>/')
+@website.route('/<any(downloads, community, learning, teaching, publications, jsoc):category>/<path:path>/')
 def page(category, path='index'):
     # 'path is the filename of a page, without the file extension'
     # e.g. "first-post"
-    page = pages.get_or_404(category+ '/' + path)
+    page = pages.get_or_404(category + '/' + path)
     page_content = my_renderer(page.html)
     return render_template('website/_layouts/default.html', page=page.meta, content=page_content)
 
