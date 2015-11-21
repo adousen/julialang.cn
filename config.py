@@ -46,7 +46,7 @@ class TestConfig(Config):
     DEBUG = True
 
     # CREATE DATABASE IF NOT EXISTS juliacn DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
-    SQLALCHEMY_DATABASE_URI = 'mysql://juliacn:somepass@localhost/juliacn?charset=utf8'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' +os.path.join(basedir, 'data.sqlite')
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 

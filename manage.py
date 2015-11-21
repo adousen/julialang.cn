@@ -11,7 +11,7 @@ from project.apps.account.models import User
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 db = app.config['db']
 manager = Manager(app)
-migrate = Migrate().init_app(app, db)
+migrate = Migrate(app, db)
 
 
 def _make_shell_context():
@@ -20,6 +20,8 @@ def _make_shell_context():
 manager.add_command("shell", Shell(make_context=_make_shell_context))
 manager.add_command('db', MigrateCommand)
 
+# 打印url映射表
+print(app.url_map)
 
 if __name__ == '__main__':
     manager.run()

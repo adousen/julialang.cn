@@ -19,7 +19,7 @@ def create_app(config_name):
     app.register_blueprint(website_blueprint)
 
     from apps.account import account as account_blueprint
-    app.register_blueprint(account_blueprint)
+    app.register_blueprint(account_blueprint, url_prefix='/account')
 
     return app
 

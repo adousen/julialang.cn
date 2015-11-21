@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block page_content %}
+通过你的邮箱注册
+<form method="post">
+    {{ form.hidden_tag() }}
+    {% for field in form %}
+        {% if field.type != 'CSRFTokenField' %}
+            {% if field.type != 'SubmitField' %}
+                {{ field.label }}
+            {% endif %}
+            {{ field }}
+            {% if field.errors %}
+                {% for error in field.errors %}
+                    {{ error }}
+                {% endfor %}
+            {% endif %}
+            <br/>
+        {% endif %}
+    {% endfor %}
+
+</form>
+{% endblock %}

@@ -7,7 +7,7 @@ from wtforms import StringField, PasswordField, BooleanField, \
 from wtforms.validators import DataRequired, Email, Length, EqualTo, Regexp
 from wtforms import ValidationError
 
-from models import User, Roles
+from models import User  # , Roles
 # 技巧：引入类后，PyCharmh会给其小写的间接引用变量提供成员提示
 
 class RegisterForm(Form):
@@ -38,39 +38,40 @@ class EditProfileForm(Form):
 
 
 class EditProfileAdminForm(Form):
-    email = StringField(u'邮箱账号', validators=[Length(0, 64, message=u'昵称长度不能超过64位')])
-    username = StringField(u'用户名', validators=[
-        DataRequired(u'用户名不能为空'), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
-                                                        u'用户名只能是以字母开头， '
-                                                        u'以及字母、数字、‘.’ 或者下划线的组合')])
-    role = SelectField(u'用户组', coerce=int)
-    nickname = StringField(u'昵称', validators=[Length(0, 64, message=u'昵称长度不能超过64位')])
-    location = StringField(u'所在地', validators=[Length(0, 64, message=u'所在地长度不能超过64位')])
-    about_me = TextAreaField(u'自我介绍', validators=[Length(0, 64, message=u'长度不能超过255位')])
-    confirmed = BooleanField(u'已认证')
-    locked = BooleanField(u'已冻结')
-    deleted = BooleanField(u'已删除')
-    submit = SubmitField(u'提交')
-
-    def __init__(self, user, *args, **kwargs):
-        super(EditProfileAdminForm, self).__init__(*args, **kwargs)
-        self.role.choices = [(role.id, role.name)
-                             for role in Roles.all()]
-        self.user = user
-
-    # 保证新值不与数据库已存在的值重复
-    # 且如果字段的值没有变化就应跳过
-    def validate_email(self, field):
-        if field.data != self.user.email \
-                and User.query.is_email_exist(field.data):
-            raise ValidationError(u'邮箱已经存在')
-
-    def validate_username(self, field):
-        if field.data != self.user.username\
-                and User.query.is_username_exist(field.data):
-            raise ValidationError(u'用户名已经存在')
-
-    def validate_nickname(self, field):
-        if field.data != self.user.nickname\
-                and User.query.is_nickname_exist(field.data):
-            raise ValidationError(u'昵称已经存在')
+    # email = StringField(u'邮箱账号', validators=[Length(0, 64, message=u'昵称长度不能超过64位')])
+    # username = StringField(u'用户名', validators=[
+    #     DataRequired(u'用户名不能为空'), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
+    #                                                     u'用户名只能是以字母开头， '
+    #                                                     u'以及字母、数字、‘.’ 或者下划线的组合')])
+    # role = SelectField(u'用户组', coerce=int)
+    # nickname = StringField(u'昵称', validators=[Length(0, 64, message=u'昵称长度不能超过64位')])
+    # location = StringField(u'所在地', validators=[Length(0, 64, message=u'所在地长度不能超过64位')])
+    # about_me = TextAreaField(u'自我介绍', validators=[Length(0, 64, message=u'长度不能超过255位')])
+    # confirmed = BooleanField(u'已认证')
+    # locked = BooleanField(u'已冻结')
+    # deleted = BooleanField(u'已删除')
+    # submit = SubmitField(u'提交')
+    #
+    # def __init__(self, user, *args, **kwargs):
+    #     super(EditProfileAdminForm, self).__init__(*args, **kwargs)
+    #     self.role.choices = [(role.id, role.name)
+    #                          for role in Roles.all()]
+    #     self.user = user
+    #
+    # # 保证新值不与数据库已存在的值重复
+    # # 且如果字段的值没有变化就应跳过
+    # def validate_email(self, field):
+    #     if field.data != self.user.email \
+    #             and User.query.is_email_exist(field.data):
+    #         raise ValidationError(u'邮箱已经存在')
+    #
+    # def validate_username(self, field):
+    #     if field.data != self.user.username\
+    #             and User.query.is_username_exist(field.data):
+    #         raise ValidationError(u'用户名已经存在')
+    #
+    # def validate_nickname(self, field):
+    #     if field.data != self.user.nickname\
+    #             and User.query.is_nickname_exist(field.data):
+    #         raise ValidationError(u'昵称已经存在')
+    pass

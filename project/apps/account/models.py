@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import hashlib
-import datetime
+from datetime import datetime
 from werkzeug.utils import cached_property
 from flask.ext.principal import Permission, UserNeed
 from flask import url_for
+from sqlalchemy import orm
 
 from project import db
 
@@ -13,22 +14,24 @@ from contrib.utils import functions
 from project.permissions import RoleNeeds, RolePerms, AccessNeeds, AccessPerms
 
 
-class UserQuery(object):
-    def __init__(self, obj):
-        self.obj = obj
+class UserQuery(db.Query):
+    # def __init__(self, obj, entities, session=None):
+    #     self.obj = obj
+    #     super(UserQuery, self).__init__(entities, session)
+
 
     # util methods
     @staticmethod
     def get_user_by_email(email):
-        return User.filter(User.c.email == email).one()
+        return User.query.filter_by(email=email).first()
 
     @staticmethod
     def get_by_id(userid):
-        return User.filter(User.c.id == userid).one()
+        return User.query.filter_by(id=userid).first()
 
     @classmethod
     def is_email_exist(cls, email):
-        user = User.filter(User.c.email == email).one()
+        user = User.query.filter_by(email=email).first()
         if user:
             return True
         else:
@@ -36,14 +39,15 @@ class UserQuery(object):
 
     @classmethod
     def is_username_exist(cls, username):
-        user = User.filter(User.c.username == username).one()
+        user = User.query.filter_by(username=username).first()
         if user:
             return True
         else:
             return False
+
     @classmethod
     def is_nickname_exist(cls, nickname):
-        user = User.filter(User.c.nickname == nickname).one()
+        user = User.query.filter_by(nickname=nickname).first()
         if user:
             return True
         else:
@@ -51,11 +55,13 @@ class UserQuery(object):
 
 
 class User(db.Model):
-    __tablename__ = 'user'
-    id = db.Column(db.Integer, primary_key=True)
+    query_class = UserQuery
 
+    __tablename__ = 'user'
+
+    id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.VARCHAR(255), unique=True)
-    nickname = db.Column(db.NVARCHAR(255), unique=True)
+    # nickname = db.Column(db.NVARCHAR(255), unique=True)
     email = db.Column(db.VARCHAR(255), unique=True)
     password_hash = db.Column(db.VARCHAR(255), nullable=False)
     #role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
@@ -72,7 +78,6 @@ class User(db.Model):
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
-        self.query = UserQuery(self)
         self.password = kwargs.get('password', 'default_pwd')
 
     @property
@@ -131,9 +136,19 @@ class User(db.Model):
     def is_superuser(self):
         return int(self.role.permissions) == 4
 
-    # active method
-    def save(self, **kwargs):
-        return super(User, self).save(**kwargs)
+    # # active method
+    def save(self):
+        # _saved_flag = False
+        # User.role= Role.query.filter_by(name='User').first()
+
+        db.session.add(self)
+        db.session.commit()
+
+        # if User.query.filter_by(email=self.email).first():
+        #     _saved_flag = True
+
+        return True
+
 
     def verify_password(self, password):
         return functions.check_password(password, self.password_hash)
@@ -153,7 +168,7 @@ class User(db.Model):
 
     # ping-method before request
     def ping(self):
-        self.last_active = datetime.datetime.now()
+        self.last_active = datetime.now()
         self.save()
 
     # user confirm
