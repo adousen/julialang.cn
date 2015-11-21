@@ -18,6 +18,9 @@ def create_app(config_name):
     from apps.website import website as website_blueprint
     app.register_blueprint(website_blueprint)
 
+    from apps.account import account as account_blueprint
+    app.register_blueprint(account_blueprint)
+
     return app
 
 
@@ -28,7 +31,7 @@ def configure_extensions(app):
     app.config["BOOTSTRAP_SERVE_LOCAL"] = True
 
     db.init_app(app)
-    db.echo = app.config['DB_ECHO']
+    app.config["db"] = db
 
     login_manager.init_app(app)
     app.config['ext_login_manager'] = login_manager

@@ -3,37 +3,22 @@
 import os, shutil
 from datetime import datetime
 from project import create_app
-from project.extensions import freezer
 from flask.ext.script import Manager, Shell, prompt_bool
+from flask.ext.migrate import Migrate, MigrateCommand
+
+from project.apps.account.models import User
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+db = app.config['db']
 manager = Manager(app)
+migrate = Migrate().init_app(app, db)
 
-@manager.command
-def freeze(debug=False):
-    if debug:
-        freezer.run(debug=True)
-    freezer.freeze()
 
-from config import basedir
-pagesdir = os.path.join(basedir, 'pages')
+def _make_shell_context():
+    return dict(app=app, db=db, User=User)
 
-@manager.command
-def new_post(title):
-    """
-    creates a new file in 'pages' directory with 
-    indicated title, formatted yaml header, and opens
-    new file in sublime text editor
-    """
-    
-    yaml_header = 'title: %s' % title + '\n' +\
-                  'date: %s' % datetime.now()[:-7] + '\n\n'
-    
-    filename = title.replace(' ','_') + '.md'
-    filepath = os.path.join(pagesdir, filename)
-    with open(filepath, 'w') as thefile:
-        thefile.write(yaml_header)
-    os.system("subl %s" % filepath)
+manager.add_command("shell", Shell(make_context=_make_shell_context))
+manager.add_command('db', MigrateCommand)
 
 
 if __name__ == '__main__':
