@@ -1,13 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from flask import render_template, render_template_string
-from flask_flatpages.utils import pygmented_markdown
+from project.extensions import pages
 
 from . import website
-from project import pages, freezer
 
 
 def my_renderer(text):
-    prerendered_body = render_template_string(text)
-    return prerendered_body
+    pre_rendered_body = render_template_string(text)
+    return pre_rendered_body
 
 
 @website.route('/')

@@ -1,21 +1,23 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 def parent_dir(path):
-    '''Return the parent of a directory.'''
+    """Return the parent of a directory."""
 
     return os.path.abspath(os.path.join(path, os.pardir))
 
 
-class Config:
-    REPO_NAME = "goodwordalchemy.github.io"  # Used for FREEZER_BASE_URL
-    DEBUG = False
+class Config(object):
+    REPO_NAME = "julialang.cn"  # Used for FREEZER_BASE_URL
+    DEBUG = True
 
     APP_DIR = basedir
 
-    PROJECT_ROOT = basedir
+    PROJECT_ROOT = os.path.join(basedir, 'project')
     # In order to deploy to Github pages, you must build the static files to
     # the project root
     FREEZER_DESTINATION = PROJECT_ROOT
@@ -28,10 +30,27 @@ class Config:
     FLATPAGES_ROOT = os.path.join(APP_DIR, 'pages')
     FLATPAGES_EXTENSION = '.md'
 
+    # CREATE DATABASE IF NOT EXISTS juliacn DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+    SQLALCHEMY_DATABASE_URI = 'mysql://juliacn:somepass@localhost/juliacn?charset=utf8'
+    SQLALCHEMY_ECHO = True  # 打开数据库调试模式
+
+    CSRF_ENABLED = True
+    SECRET_KEY = 'CSRF KEY juliacn'
+
     @staticmethod
     def init_app(app):
         pass
 
+class TestConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_ECHO = True
+
+class ProductConfig(Config):
+    DEBUG = False
+    SQLALCHEMY_ECHO = False
+
 config = {
-    'default': Config
+    'default': Config,
+    'test': TestConfig,
+    'production': ProductConfig,
 }

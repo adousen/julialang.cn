@@ -1,4 +1,4 @@
-This is a static site like julialang.cog, but it uses python and flask instead of ruby to generate the static pages.
+This is a site like julialang.org, but it uses python and flask instead of ruby to generate the static pages.
 
 ##Installation
 

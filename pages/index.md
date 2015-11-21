@@ -64,7 +64,6 @@ Benchmarks can also be seen <a href="/benchmarks/">here as a plot</a> created
 with <a href="https://github.com/dcjones/Gadfly.jl">Gadfly</a>.
 </p>
 </div>
-
 These benchmarks, while not comprehensive, do test compiler performance on a range of common code patterns, such as function calls, string parsing, sorting, numerical loops, random number generation, and array operations.
 It is important to note that these benchmark implementations are not written for absolute maximal performance (the fastest code to compute `fib(20)` is the constant literal `6765`).
 Rather, all of the benchmarks are written to test the performance of specific algorithms, expressed in a reasonable idiom in each language.
@@ -87,7 +86,6 @@ function mandel(z)
     end
     return maxiter
 end
-
 function randmatstat(t)
     n = 5
     v = zeros(t)
