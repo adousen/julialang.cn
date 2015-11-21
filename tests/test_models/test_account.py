@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """
     tests.test_models.test_account
-    ~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    测试account模块的model
+    测试account.model模块
 
     :copyright: (c) 2015 by adousen.
 """
@@ -29,14 +29,14 @@ class UserModelTests(TestCase):
         db.session.remove()
         db.drop_all()
 
-    def test_password_setter(self):
+    def test_can_set_password_to_password_hash(self):
         print(self.test_user.password_hash)
         self.assertTrue(self.test_user.password_hash is not None)
 
-    def test_password_verification(self):
+    def test_can_verify_password(self):
         self.assertTrue(self.test_user.verify_password('cat'))
 
-    def test_user_save(self):
+    def test_can_save_user(self):
         save_flag = False
 
         self.test_user.save()
