@@ -23,7 +23,11 @@ class UserModelTests(TestCase):
 
     def setUp(self):
         db.create_all()
-        self.test_user = User(password='cat', email='123123123@123.com')
+        self.test_user = User(username='user',
+                              email='testuser@123.com',
+                              password='password',
+                              )
+        self.test_user.save()
 
     def tearDown(self):
         db.session.remove()
@@ -34,16 +38,22 @@ class UserModelTests(TestCase):
         self.assertTrue(self.test_user.password_hash is not None)
 
     def test_can_verify_password(self):
-        self.assertTrue(self.test_user.verify_password('cat'))
+        self.assertTrue(self.test_user.verify_password('password'))
 
     def test_can_save_user(self):
-        save_flag = False
+        if not User.query.filter_by(email=self.test_user.email).first():
+            self.assertTrue(False)
 
-        self.test_user.save()
-        if User.query.filter_by(email=self.test_user.email).first():
-            save_flag = True
+    def test_failed_save_return_false(self):
+        test_user = User(username='user', email='testuser@123.com', password='password')
+        self.assertFalse(test_user.save())
 
-        self.assertTrue(save_flag)
+    def test_can_save_data_join(self):
+        if not User.query.filter_by(email=self.test_user.email).first().data_join == self.test_user.data_join:
+            self.assertTrue(False)
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

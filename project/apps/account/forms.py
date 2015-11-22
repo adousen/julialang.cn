@@ -11,6 +11,9 @@ from models import User  # , Roles
 # 技巧：引入类后，PyCharmh会给其小写的间接引用变量提供成员提示
 
 class RegisterForm(Form):
+    username = StringField(u'用户名', validators=[DataRequired(u'用户名不能为空'),
+                                               Length(min=3, max=20, message=u'最少3个字符，最长20个字符'),
+                                               Regexp(r'[a-zA-Z][a-zA-Z0-9_]', message=u'须以字母开头，并且为字母和数字的组合')])
     email = StringField(u'注册邮箱', validators=[DataRequired(u'邮箱不能为空'), Email(u'请输入正确的邮箱地址')])
     password = PasswordField(u'账号密码',
                              validators=[DataRequired(u'密码不能为空'), Length(min=6, message=u'密码不能低于6位')])

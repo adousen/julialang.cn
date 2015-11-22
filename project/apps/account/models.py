@@ -66,10 +66,10 @@ class User(db.Model):
     password_hash = db.Column(db.VARCHAR(255), nullable=False)
     #role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
     confirmed = db.Column(db.BOOLEAN)
-    data_join = db.Column(db.DATETIME)  # auto_now_add=True
-    last_login = db.Column(db.DATETIME)  # auto_now_add=True
-    last_active = db.Column(db.DATETIME)  # auto_now_add=True
-    active = db.Column(db.BOOLEAN, default=False)
+    data_join = db.Column(db.DATETIME, default=datetime.now())  # auto_now_add
+    last_login = db.Column(db.DATETIME, default=datetime.now())  # auto_now_add
+    last_active = db.Column(db.DATETIME, default=datetime.now())  # auto_now_add
+    active = db.Column(db.BOOLEAN, default=False)  # on line or off line
     locked = db.Column(db.BOOLEAN, default=False)
     deleted = db.Column(db.BOOLEAN, default=False)
     location = db.Column(db.NVARCHAR(255))
@@ -138,14 +138,12 @@ class User(db.Model):
 
     # # active method
     def save(self):
-        # _saved_flag = False
-        # User.role= Role.query.filter_by(name='User').first()
-
         db.session.add(self)
-        db.session.commit()
-
-        # if User.query.filter_by(email=self.email).first():
-        #     _saved_flag = True
+        try:
+            db.session.commit()
+        except Exception, msg:
+            print('Error: Cannot save user, because ' + msg.message)
+            return False
 
         return True
 

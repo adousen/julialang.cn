@@ -38,6 +38,16 @@ class Config(object):
     CSRF_ENABLED = True
     SECRET_KEY = 'CSRF KEY juliacn'
 
+    # setting mail provider
+    MAIL_SERVER = 'smtp.163.com'
+    MAIL_PORT = 465
+    MAIL_USE_SSL = True
+    MAIL_USERNAME = 'julialang'
+    MAIL_PASSWORD = 'dtxpaeftaqxggfve'
+    MAIL_SENDER = 'julialang@163.com'
+    MAIL_SUBJECT_PREFIX = '[JuliaLang.cn]'
+    MAIL_TEST_ACCOUNT = 'adousen@126.com'
+
     @staticmethod
     def init_app(app):
         pass
