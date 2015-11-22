@@ -47,6 +47,7 @@ def before_request():
                 and request.endpoint != 'static':
             return redirect(url_for('account.unconfirmed'))
 
+
 @account.route('/register', methods=['GET', 'POST'])
 def register():
     from .forms import RegisterForm
@@ -55,20 +56,22 @@ def register():
         return render_template('account/register.html', form=form)
     if request.method == 'POST':
         if form.validate_on_submit():
+            username = form.username.data
             email = form.email.data
             password = form.password.data
-            user = User(email=email, password=password)
+            user = User(username=username, email=email, password=password)
             user.save()
             user.nickname = u'友友[' + str.format("1%07d" % int(user.id)) + ']'
 
             if user.save():
-                token = generate_confirm_token(user.id, current_app.config['SECRET_KEY'])
+                if not current_app.config['IN_FAKE_TEST']:
+                    token = generate_confirm_token(user.id, current_app.config['SECRET_KEY'])
 
-                if current_app.config['MAIL_TEST_ACCOUNT']:
-                    print current_app.config['MAIL_TEST_ACCOUNT']
-                    sendmail.send_email(current_app.config['MAIL_TEST_ACCOUNT'], u'请确认您的账号', 'account/mail/confirm', user=user, token=token)
+                    if current_app.config['MAIL_TEST_ACCOUNT']:
+                        print current_app.config['MAIL_TEST_ACCOUNT']
+                        sendmail.send_email(current_app.config['MAIL_TEST_ACCOUNT'], u'请确认您的账号', 'account/mail/confirm', user=user, token=token)
 
-                flash(u'一封确认邮件已发送到你的邮箱，请查收邮件并完成确认.')
+            flash(u'一封账号激活邮件已发送到你的邮箱，请查收邮件并完成激活.')
 
             return redirect(url_for('account.register'))
         return render_template('account/register.html', form=form)
@@ -121,7 +124,7 @@ def resend_confirmation():
         print current_app.config['MAIL_TEST_ACCOUNT']
         sendmail.send_email(current_app.config['MAIL_TEST_ACCOUNT'], u'请确认您的账号', 'mail/confirm', user=current_user, token=token)
 
-    flash(u'一封新的确认邮件已经发送到你的邮箱。')
+    flash(u'一封新的账号激活邮件已经发送到你的邮箱。')
     return redirect(url_for('community.index'))
 
 '''

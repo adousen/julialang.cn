@@ -15,6 +15,9 @@ class Config(object):
     REPO_NAME = "julialang.cn"  # Used for FREEZER_BASE_URL
     DEBUG = True
 
+    # In order to skip some route in test
+    IN_FAKE_TEST = False
+
     APP_DIR = basedir
 
     PROJECT_ROOT = os.path.join(basedir, 'project')
@@ -35,7 +38,9 @@ class Config(object):
     SQLALCHEMY_ECHO = True  # 打开数据库调试模式
     SQLALCHEMY_TRACK_MODIFICATIONS = True  # 数据库调试
 
+    # Enable CSRF
     CSRF_ENABLED = True
+    WTF_CSRF_ENABLED = True
     SECRET_KEY = 'CSRF KEY juliacn'
 
     # Settings for sendmail
@@ -54,6 +59,8 @@ class Config(object):
 
 class TestConfig(Config):
     DEBUG = True
+    CSRF_ENABLED= False
+    WTF_CSRF_ENABLED = False
 
     # CREATE DATABASE IF NOT EXISTS juliacn DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' +os.path.join(basedir, 'data.sqlite')
