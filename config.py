@@ -38,7 +38,7 @@ class Config(object):
     CSRF_ENABLED = True
     SECRET_KEY = 'CSRF KEY juliacn'
 
-    # setting mail provider
+    # Settings for sendmail
     MAIL_SERVER = 'smtp.163.com'
     MAIL_PORT = 465
     MAIL_USE_SSL = True

@@ -2,12 +2,11 @@
 # -*- coding: utf-8 -*-
 __author__ = 'adousen'
 
-from flask import Flask, current_app, Blueprint
-
-from flask.ext.mail import Message
-from flask import render_template
 from threading import Thread
 
+from flask import current_app, Blueprint
+from flask.ext.mail import Message
+from flask import render_template
 
 
 class SendMail(object):
@@ -37,8 +36,3 @@ def send_async_email(app, msg):
         mail.send(msg)
 
 
-def generate_confirmation_token(raw, expiration=3600):
-    from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-    from flask import current_app
-    s = Serializer(current_app.config['SECRET_KEY'], expiration)
-    return s.dumps({'confirm': raw})

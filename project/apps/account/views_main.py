@@ -13,6 +13,9 @@ from flask import current_app, request, render_template, redirect, url_for, flas
 from flask.ext.login import login_required, login_user, logout_user, current_user
 from flask.ext.principal import identity_changed, Identity, AnonymousIdentity
 
+from project import sendmail
+from contrib.confirm import generate_confirm_token, token_confirm
+
 from .import account
 from .models import User
 from project import login_manager
@@ -59,11 +62,8 @@ def register():
             user.nickname = u'友友[' + str.format("1%07d" % int(user.id)) + ']'
 
             if user.save():
-                from contrib.mail import generate_confirmation_token
-                token = generate_confirmation_token(user.id)
+                token = generate_confirm_token(user.id, current_app.config['SECRET_KEY'])
 
-                from project import sendmail
-                from flask import current_app
                 if current_app.config['MAIL_TEST_ACCOUNT']:
                     print current_app.config['MAIL_TEST_ACCOUNT']
                     sendmail.send_email(current_app.config['MAIL_TEST_ACCOUNT'], u'请确认您的账号', 'account/mail/confirm', user=user, token=token)
@@ -84,16 +84,10 @@ def register():
 @account.route('/confirm/<token>')
 def confirm(token):
     if current_user.is_authenticated:
-        from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadSignature
-        s = Serializer(current_app.config['SECRET_KEY'])
+        user_id = token_confirm(token, current_app.config['SECRET_KEY'])
+        if not user_id:
+            redirect(url_for('community.index'))
 
-        try:
-            data = s.loads(token)
-        except BadSignature:
-            flash(u'错误操作')
-            return redirect(url_for('community.index'))
-
-        user_id = data.get('confirm')
         user = User.query.get_by_id(user_id)
 
     else:
@@ -121,15 +115,11 @@ def unconfirmed():
 @account.route('/confirm')
 @login_required
 def resend_confirmation():
-    from contrib.mail import generate_confirmation_token
-    token = generate_confirmation_token(current_user.id)
+    token = generate_confirm_token(current_user.id, current_app.config['SECRET_KEY'])
 
-    # send email
-    from project import sendmail
-    from flask import current_app as app
-    if app.config['MAIL_TEST_ACCOUNT']:
-        print app.config['MAIL_TEST_ACCOUNT']
-        sendmail.send_email(app.config['MAIL_TEST_ACCOUNT'], u'请确认您的账号', 'mail/confirm', user=current_user, token=token)
+    if current_app.config['MAIL_TEST_ACCOUNT']:
+        print current_app.config['MAIL_TEST_ACCOUNT']
+        sendmail.send_email(current_app.config['MAIL_TEST_ACCOUNT'], u'请确认您的账号', 'mail/confirm', user=current_user, token=token)
 
     flash(u'一封新的确认邮件已经发送到你的邮箱。')
     return redirect(url_for('community.index'))
