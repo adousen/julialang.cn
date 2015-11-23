@@ -20,7 +20,7 @@ class UserQuery(db.Query):
     #     super(UserQuery, self).__init__(entities, session)
 
 
-    # util methods
+    # utils
     @staticmethod
     def get_user_by_email(email):
         return User.query.filter_by(email=email).first()
@@ -143,8 +143,8 @@ class User(db.Model):
             db.session.commit()
         except Exception, msg:
             print('Error: Cannot save user, because ' + msg.message)
+            db.session.rollback()
             return False
-
         return True
 
 

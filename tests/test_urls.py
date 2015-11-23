@@ -20,7 +20,3 @@ class SiteUrlTests(TestCase):
         with self.client as client:
             client.get('/account/register')
             self.assertEqual(request.endpoint, 'account.register')
-
-if __name__ == '__main__':
-    unittest.main()
-

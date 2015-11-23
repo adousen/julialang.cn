@@ -15,8 +15,8 @@ class BaseTestCase(TestCase):
     def setUp(self):
         db.create_all()
         self.test_user = User(username='user',
-                              email='testuser@123.com',
-                              password='password',
+                              email='user@test.com',
+                              password='testing',
                               )
         self.test_user.save()
 

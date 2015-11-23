@@ -1,9 +1,6 @@
 # coding=utf-8
 __author__ = 'adousen'
 
-from datetime import datetime
-import random
-
 
 def all_menber(target):
     """list the all public menbers of target"""
@@ -45,6 +42,7 @@ def get_hexdigest(algorithm, salt, raw_password):
             return hashlib.sha1(salt + raw_password).hexdigest()
     raise ValueError("Got unknown password algorithm type in password.")
 
+
 def check_password(raw_password, enc_password):
     """
     Returns a boolean of whether the raw_password was correct. Handles
@@ -61,6 +59,3 @@ def encrypt_password(raw_password):
     hsh = get_hexdigest(algo, salt, raw_password)
     return '%s$%s$%s' % (algo, salt, hsh)
 
-def gen_rnd_filename():
-    filename_prefix = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    return '%s%s' % (filename_prefix, str(random.randrange(1000, 10000)))
