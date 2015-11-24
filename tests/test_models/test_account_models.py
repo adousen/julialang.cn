@@ -24,10 +24,11 @@ class UserModelTests(BaseTestCase):
         if not User.query.filter_by(email=self.test_user.email).first():
             self.assertTrue(False)
 
-    def test_existed_user_save_fail(self):
+    def test_save_existed_username_fail(self):
         test_user = User(username='user', email='tester@test.com', password='testing')
         self.assertFalse(test_user.save())
 
+    def test_save_existed_email_fail(self):
         test_user = User(username='tester', email='user@test.com', password='testing')
         self.assertFalse(test_user.save())
 

@@ -61,7 +61,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.VARCHAR(255), unique=True)
-    # nickname = db.Column(db.NVARCHAR(255), unique=True)
+    #nickname = db.Column(db.NVARCHAR(255), unique=True)
     email = db.Column(db.VARCHAR(255), unique=True)
     password_hash = db.Column(db.VARCHAR(255), nullable=False)
     #role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
