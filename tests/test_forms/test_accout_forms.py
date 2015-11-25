@@ -56,7 +56,7 @@ class RegisterFormTests(BaseTestCase):
         form = RegisterForm(username="tester", email="tester@test.com", password=password, repassword=password)
         self.assertFalse(form.validate())
 
-    # existed
+    # Existed
     def test_validate_existed_username(self):
         form = RegisterForm(username="user", email="tester@test.com", password="testing", repassword="testing")
         self.assertFalse(form.validate())

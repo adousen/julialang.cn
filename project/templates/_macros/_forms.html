@@ -1,0 +1,31 @@
+{% macro simple_form(form,
+                    id="",
+                    action="",
+                    method="post",
+                    role="form",
+                    class="form"
+                    ) %}
+<form
+  {%- if id %} id="{{id}}"{% endif -%}
+  {%- if action != None %} action="{{action}}"{% endif -%}
+  {%- if method %} method="{{method}}"{% endif %}
+  {%- if role %} role="{{role}}"{% endif -%}
+  {%- if class %} class="{{class}}"{% endif -%}
+  >
+    {{ form.hidden_tag() }}
+    {%- for field in form %}
+        {%- if field.type != 'CSRFTokenField' %}
+            {%- if field.type != 'SubmitField' %}
+                {{ field.label }}
+            {%- endif %}
+            {{ field }}
+            {%- if field.errors %}
+                {% for error in field.errors %}
+                    {{ error }}
+                {% endfor %}
+            {%- endif -%}
+            <br/>
+        {%- endif %}
+    {%- endfor %}
+</form>
+{%- endmacro %}

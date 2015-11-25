@@ -18,6 +18,9 @@ def create_app(config_name):
     from apps.website import website as website_blueprint
     app.register_blueprint(website_blueprint)
 
+    from apps.main import main as main_blueprint
+    app.register_blueprint(main_blueprint, url_prefix='/main')
+
     from apps.account import account as account_blueprint
     app.register_blueprint(account_blueprint, url_prefix='/account')
 

@@ -20,3 +20,8 @@ class SiteUrlTests(TestCase):
         with self.client as client:
             client.get('/account/register')
             self.assertEqual(request.endpoint, 'account.register')
+
+    def test_url_resolve_to_account_login(self):
+        with self.client as client:
+            client.get('/account/login')
+            self.assertEqual(request.endpoint, 'account.login')
