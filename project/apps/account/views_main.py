@@ -97,7 +97,7 @@ def confirm(token):
     if user.confirmed:
         return redirect(url_for('main.index'))
     if user.confirm():
-        flash(u'账号激活成功，谢谢!')
+        flash(u'账号激活成功，julialang.cn欢迎您！')
         login_user(user)
         identity_changed.send(current_app._get_current_object(),
                     identity=Identity(user.id))

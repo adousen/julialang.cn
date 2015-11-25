@@ -9,7 +9,7 @@ class TestAccountBlueprint(BaseTestCase):
         response = self.client.get('/account/register', follow_redirects=True)
         self.assertIn(u'邮箱注册', response.data.decode('utf8'))
 
-    def test_user_registration(self):
+    def test_user_registration_behaves_correctly(self):
         """Ensure registration behaves correctly."""
         with self.client:
             self.app.config['IN_FAKE_TEST'] = True
@@ -20,7 +20,12 @@ class TestAccountBlueprint(BaseTestCase):
             )
             self.assertIn(u'账号激活邮件', response.data.decode('utf8'))
 
-    def test_user_login(self):
+    def test_login_route(self):
+        """Ensure register route behaves correctly."""
+        response = self.client.get('/account/login', follow_redirects=True)
+        self.assertIn(u'邮箱登录', response.data.decode('utf8'))
+
+    def test_user_login_behaves_correctly(self):
         """Ensure user login behaves correctly."""
         with self.client:
             response = self.client.post(
@@ -37,7 +42,13 @@ class TestAccountBlueprint(BaseTestCase):
             self.assertFalse(current_user.is_anonymous())
             self.assertEqual(int(current_user.get_id()), 1)
 
-    def test_logout_behaves_correctly(self):
+    def test_logout_route_requires_login(self):
+        # Ensure logout route requires login.
+        with self.client:
+            response = self.client.get('account/logout', follow_redirects=True)
+            self.assertIn(u'请先登录', response.data.decode('utf8'))
+
+    def test_user_logout_behaves_correctly(self):
         # Ensure logout behaves correctly - regarding the session.
         with self.client:
             self.client.post(
@@ -51,9 +62,3 @@ class TestAccountBlueprint(BaseTestCase):
             self.assertTrue(current_user.is_anonymous())
             self.assertFalse(current_user.is_active())
             self.assertFalse(current_user.is_authenticated())
-
-    def test_logout_route_requires_login(self):
-        # Ensure logout route requires login.
-        with self.client:
-            response = self.client.get('account/logout', follow_redirects=True)
-            self.assertIn(u'请先登录', response.data.decode('utf8'))

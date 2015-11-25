@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from tests.base import BaseTestCase
-from project.apps.account.forms import RegisterForm
+from project.apps.account.forms import RegisterForm, LoginForm
 from contrib.utils.generic import random_str
 
 
@@ -63,4 +63,10 @@ class RegisterFormTests(BaseTestCase):
 
     def test_validate_existed_email(self):
         form = RegisterForm(username="tester", email="user@test.com", password="testing", repassword="testing")
+        self.assertFalse(form.validate())
+
+
+class LoginFormTests(BaseTestCase):
+    def test_validate_invalid_email_format(self):
+        form = LoginForm(email="test.com", password="testing")
         self.assertFalse(form.validate())

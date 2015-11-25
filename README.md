@@ -1,5 +1,5 @@
 This is a site like julialang.org, but it uses python and flask instead of ruby to generate the markdown pages.
-This Project is in the developing.
+This Project is in development.
 
 ##Installation
 
