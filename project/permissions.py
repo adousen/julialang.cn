@@ -185,7 +185,7 @@ class AccessPerms(object):
     class Blog(object):
         manage = MangePermission(*AccessNeeds.Blog.allNeedsList)
         manage.code = 300
-        manage.name = u'管理博客文章'
+        manage.name = u'管理文章'
 
         add = MangePermission(AccessNeeds.Blog.editNeed)
         add.code = 301

@@ -152,8 +152,7 @@ def login():
 
                 login_user(user, form.remember_me.data)
 
-                identity_changed.send(current_app._get_current_object(),
-                    identity=Identity(user.id))
+                identity_changed.send(current_app._get_current_object(), identity=Identity(user.id))
                 flash(u'登录成功，欢迎回来！')
                 return redirect(request.args.get('next') or url_for('main.index'))
             else:
