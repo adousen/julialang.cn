@@ -24,6 +24,10 @@ class UserModelTests(BaseTestCase):
         if not User.query.filter_by(email=self.test_user.email).first():
             self.assertTrue(False)
 
+    def test_user_save_with_data_join(self):
+        if not User.query.filter_by(email=self.test_user.email).first().data_join == self.test_user.data_join:
+            self.assertTrue(False)
+
     def test_save_existed_username_fail(self):
         test_user = User(username=u'user', email='tester@test.com', password='testing')
         self.assertFalse(test_user.save())
@@ -32,32 +36,85 @@ class UserModelTests(BaseTestCase):
         test_user = User(username=u'tester', email='user@test.com', password='testing')
         self.assertFalse(test_user.save())
 
-    def test_can_save_data_join(self):
-        if not User.query.filter_by(email=self.test_user.email).first().data_join == self.test_user.data_join:
-            self.assertTrue(False)
+    def test_one_to_many_relationship(self):
+        self.init_test_role_table()
+        test_user1 = User(username=u'tester1', email='tester1@test.com', password='testing',
+                         role_id=Role.query.filter_by(name=u"Superuser").first().id)
+        test_user1.save()
+
+        test_user2 = User(username=u'tester2', email='tester2@test.com', password='testing',
+                         role_id=Role.query.filter_by(name=u"Superuser").first().id)
+        test_user2.save()
+
+        users = Role.query.filter_by(name=u"Superuser").first().users
+        username_list = list()
+        for user in users:
+            username_list.append(user.username)
+        self.assertIn(u'tester2', username_list)
+
+    def test_many_to_one_relationship(self):
+        self.init_test_role_table()
+        test_user1 = User(username=u'tester1', email='tester1@test.com', password='testing',
+                         role_id=Role.query.filter_by(name=u"Superuser").first().id)
+        test_user1.save()
+
+        self.assertEqual(1, test_user1.role.level)
+
+    def test_check_user_is_superuser(self):
+        self.init_test_role_table()
+        test_user = User(username=u'tester', email='tester@test.com', password='testing',
+                         role_id=Role.query.filter_by(name=u"Superuser").first().id)
+        test_user.save()
+        self.assertTrue(test_user.is_superuser)
+
+    def test_check_user_is_admin(self):
+        self.init_test_role_table()
+        test_user = User(username=u'tester', email='tester@test.com', password='testing',
+                         role_id=Role.query.filter_by(name=u"Admin").first().id)
+        test_user.save()
+        self.assertTrue(test_user.is_admin)
+
+    def test_check_user_is_moderator(self):
+        self.init_test_role_table()
+        test_user = User(username=u'tester', email='tester@test.com', password='testing',
+                         role_id=Role.query.filter_by(name=u"Moderator").first().id)
+        test_user.save()
+        self.assertTrue(test_user.is_moderator)
 
 
 class RoleModelTests(BaseTestCase):
     def test_add_role(self):
-        test_role = Role(name=u"系统测试员", group="-1", level="4")
+        test_role = Role(name=u"System Tester", level=1)
         self.assertTrue(test_role.save())
-        self.assertIsNotNone(Role.query.filter_by(name=u"系统测试员").first())
+        self.assertIsNotNone(Role.query.filter_by(name=u"System Tester").first())
 
     def test_init_roles(self):
-        Role.init_roles()
-        self.assertIsNotNone(Role.query.filter_by(name=u"Auth").first())
-        self.assertIsNotNone(Role.query.filter_by(name=u"Moderator").first())
-        self.assertIsNotNone(Role.query.filter_by(name=u"Admin").first())
-        self.assertIsNotNone(Role.query.filter_by(name=u"Superuser").first())
+        self.init_test_role_table()
 
 
 class PermissionCodeModelTests(BaseTestCase):
-    def test_add_role(self):
+    def test_add_code(self):
         test_code = PermissionCode(name=u"测试操作", code=100)
         self.assertTrue(test_code.save())
         self.assertIsNotNone(PermissionCode.query.filter_by(code=100).first())
 
     def test_init_codes(self):
-        PermissionCode.init_codes()
-        self.assertIsNotNone(PermissionCode.query.filter_by(code=200).first())
-        self.assertIsNotNone(PermissionCode.query.filter_by(code=300).first())
+        self.init_test_code_table()
+
+
+class CodeToRoleModelTests(BaseTestCase):
+    def setUp(self):
+        super(CodeToRoleModelTests, self).setUp()
+        self.init_test_role_table()
+        self.init_test_code_table()
+        
+    def test_add_new(self):
+        PermissionCode(name=u"测试操作", code=100)
+
+
+class CodeToUser(BaseTestCase):
+    def setUp(self):
+        super(CodeToUser, self).setUp()
+        self.init_test_role_table()
+        self.init_test_code_table()
+

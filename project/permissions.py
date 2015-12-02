@@ -98,30 +98,30 @@ class RolePerms(object):
     """
     auth = MangePermission(RoleNeeds.auth)
     auth.permissions = ''
-    auth.level = 1  #
+    auth.level = 1000
     auth.name = "Auth"
-    auth.group = -1  # 角色所属的分组，系统功能程序
+    auth.group = 1
     auth.default = True
 
     moderator = MangePermission(RoleNeeds.moderator)
     moderator.permissions = ''
-    moderator.level = 2
+    moderator.level = 3
     moderator.name = "Moderator"
-    moderator.group = -1
+    moderator.group = 1
     moderator.default = False
 
     admin = MangePermission(RoleNeeds.admin)
     admin.permissions = ''
-    admin.level = 3
+    admin.level = 2
     admin.name = "Admin"
-    admin.group = -1
+    admin.group = 1
     admin.default = False
 
     superuser = MangePermission(RoleNeeds.superuser)
     superuser.permissions = ''
-    admin.level = 4
+    superuser.level = 1
     superuser.name = "Superuser"
-    superuser.group = -1
+    superuser.group = 1
     superuser.default = False
 
     # this is assigned when you want to block a permission to all

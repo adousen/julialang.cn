@@ -15,8 +15,8 @@ from project.permissions import RoleNeeds, RolePerms, AccessNeeds, AccessPerms
 
 
 class ActiveRecordMixin(object):
-    def __init__(self, **kwargs):
-            pass
+    def __init__(self, *args, **kwargs):
+        pass
 
     # ActiveRecord method
     def save(self):
@@ -28,6 +28,7 @@ class ActiveRecordMixin(object):
             db.session.rollback()
             return False
         return True
+
 
 class UserLoginMixin(UserMixin):
     pass
@@ -51,13 +52,40 @@ class UserPermissionMixin(object):
     def permissions(self):
         return self.Permissions(self)
 
+    # Permission Provides
+    @cached_property
+    def provides(self):
+        # TODO: 从数据库初始化用户管理操作权限
+        needs = [RoleNeeds.auth, UserNeed(self.id)]
+
+        # TODO: 根据用户角色的group字段值的不同采取相应的权限加载策略
+        if self.is_moderator:
+            print "cur permission is: moderator"
+            needs.append(RoleNeeds.moderator)
+            needs.extend(AccessNeeds.Blog.allNeedsList)
+
+        if self.is_admin:
+            needs.append(RoleNeeds.admin)
+            needs.extend(AccessNeeds.Blog.allNeedsList)
+
+        return needs
+
+    @property
+    def is_moderator(self):
+        # TODO：求权限列表中的最大值
+        # 数据库中permissions字段类型是字符串
+        return int(self.role.level) == 3
+
+    @property
+    def is_admin(self):
+        return int(self.role.level) == 2
+
+    @property
+    def is_superuser(self):
+        return int(self.role.level) == 1
+
 
 class UserQuery(db.Query):
-    # def __init__(self, obj, entities, session=None):
-    #     self.obj = obj
-    #     super(UserQuery, self).__init__(entities, session)
-
-
     # utils
     @staticmethod
     def get_user_by_email(email):
@@ -125,38 +153,6 @@ class User(db.Model, ActiveRecordMixin, UserLoginMixin, UserPermissionMixin):
     def password(self, password):
         self.password_hash = functions.encrypt_password(password)
 
-    # Permission Provides
-    @cached_property
-    def provides(self):
-        # TODO: 从数据库初始化用户管理操作权限
-        needs = [RoleNeeds.auth, UserNeed(self.id)]
-
-        # TODO: 根据用户角色的group字段值的不同采取相应的权限加载策略
-        if self.is_moderator:
-            print "cur permission is: moderator"
-            needs.append(RoleNeeds.moderator)
-            needs.extend(AccessNeeds.Blog.allNeedsList)
-
-        if self.is_admin:
-            needs.append(RoleNeeds.admin)
-            needs.extend(AccessNeeds.Blog.allNeedsList)
-
-        return needs
-
-    @property
-    def is_moderator(self):
-        # TODO：求权限列表中的最大值
-        # 数据库中permissions字段类型是字符串
-        return int(self.role.level) == 2
-
-    @property
-    def is_admin(self):
-        return int(self.role.level) == 3
-
-    @property
-    def is_superuser(self):
-        return int(self.role.level) == 4
-
     def verify_password(self, password):
         return functions.check_password(password, self.password_hash)
 
@@ -184,15 +180,15 @@ class Role(db.Model, ActiveRecordMixin):
     id = db.Column(db.INT, primary_key=True)
     name = db.Column(db.NVARCHAR(255), unique=True)
     default = db.Column(db.BOOLEAN, default=False, index=True)
-    group = db.Column(db.INT, default=0)
-    level = db.Column(db.INT, default=0)
-    permissions = db.Column(db.TEXT, unique=False)
-    users = db.relationship('User', backref='role', lazy='dynamic')
+    group = db.Column(db.INT, default=1)   # 当角色有多个分组时使用，可用于未来扩展，默认为1
+    level = db.Column(db.INT, default=1000)   # 角色的权限等级，值越小权限越大
+    permissions = db.Column(db.TEXT, unique=False)  # deprecated
+    users = db.relationship('User', backref='role')
 
-    # 初始化roles表的系统角色数据
     @staticmethod
-    def init_roles():
-        roles = (RolePerms.auth, RolePerms.moderator, RolePerms.admin, RolePerms.superuser)
+    def init_data():
+        """初始化roles表的角色表数据"""
+        roles = (RolePerms.superuser, RolePerms.admin, RolePerms.moderator, RolePerms.auth)
 
         for r in roles:
             role = Role.query.filter_by(name=r.name).first()
@@ -201,6 +197,7 @@ class Role(db.Model, ActiveRecordMixin):
 
             role.permissions = r.permissions
             role.group = r.group
+            role.level = r.level
             role.default = r.default
 
             role.save()
@@ -211,15 +208,15 @@ class Role(db.Model, ActiveRecordMixin):
 
 
 class PermissionCode(db.Model, ActiveRecordMixin):
-    __tablename__ = 'permissions'
+    __tablename__ = 'permission_code'
     id = db.Column(db.INT, primary_key=True)
-    parent_code = db.Column(db.INT, default=0, unique=False)
-    code = db.Column(db.TEXT, unique=False)
+    code = db.Column(db.TEXT, unique=False)  # 权限编码
+    parent_code = db.Column(db.TEXT, default=0, unique=False)  # 父级权限编码
     name = db.Column(db.NVARCHAR(80), nullable=False)
     description = db.Column(db.TEXT)
 
     @staticmethod
-    def init_codes():
+    def init_data():
         """初始化Permission表数据"""
 
         default_pcode = 0
@@ -245,5 +242,19 @@ class PermissionCode(db.Model, ActiveRecordMixin):
                     permission.save()
 
 
-# TODO: Role_Permission Table
+class CodeToRole(db.Model, ActiveRecordMixin):
+    __tablename__ = 'code_to_role'
+    id = db.Column(db.Integer, primary_key=True)
+    role_level = db.Column(db.INT)
+    permission_code = db.Column(db.INT)
 
+    # @staticmethod
+    # def init_data():
+
+
+
+class CodeToUser(db.Model, ActiveRecordMixin):
+    __tablename__ = 'code_to_user'
+    id = db.Column(db.Integer, primary_key=True)
+    role_id = db.Column(db.INT)
+    user_id = db.Column(db.INT)
