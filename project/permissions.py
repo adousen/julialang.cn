@@ -97,25 +97,29 @@ class RolePerms(object):
     与系统中的各个角色相对应的权限组（permission）
     """
     auth = MangePermission(RoleNeeds.auth)
-    auth.permissions = '1'
+    auth.permissions = ''
+    auth.level = 1  #
     auth.name = "Auth"
-    auth.group = -1
+    auth.group = -1  # 角色所属的分组，系统功能程序
     auth.default = True
 
     moderator = MangePermission(RoleNeeds.moderator)
-    moderator.permissions = '2'
+    moderator.permissions = ''
+    moderator.level = 2
     moderator.name = "Moderator"
     moderator.group = -1
     moderator.default = False
 
     admin = MangePermission(RoleNeeds.admin)
-    admin.permissions = '3'
+    admin.permissions = ''
+    admin.level = 3
     admin.name = "Admin"
     admin.group = -1
     admin.default = False
 
     superuser = MangePermission(RoleNeeds.superuser)
-    superuser.permissions = '4'
+    superuser.permissions = ''
+    admin.level = 4
     superuser.name = "Superuser"
     superuser.group = -1
     superuser.default = False
@@ -159,7 +163,7 @@ class AccessNeeds(object):
 
 class AccessPerms(object):
     """
-    各系统操作对应的permission
+    各模块操作对应的permission
     """
     class User(object):
         manage = MangePermission(*AccessNeeds.User.allNeedsList)

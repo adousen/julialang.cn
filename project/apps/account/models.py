@@ -14,6 +14,21 @@ from contrib.utils import functions
 from project.permissions import RoleNeeds, RolePerms, AccessNeeds, AccessPerms
 
 
+class ActiveRecordMixin(object):
+    def __init__(self, **kwargs):
+            pass
+
+    # ActiveRecord method
+    def save(self):
+        db.session.add(self)
+        try:
+            db.session.commit()
+        except Exception, msg:
+            print('Error: Cannot save %s object, because ' % self.__class__ + msg.message)
+            db.session.rollback()
+            return False
+        return True
+
 class UserLoginMixin(UserMixin):
     pass
 
@@ -77,7 +92,7 @@ class UserQuery(db.Query):
             return False
 
 
-class User(db.Model, UserLoginMixin, UserPermissionMixin):
+class User(db.Model, ActiveRecordMixin, UserLoginMixin, UserPermissionMixin):
     query_class = UserQuery
     __tablename__ = 'user'
 
@@ -132,26 +147,15 @@ class User(db.Model, UserLoginMixin, UserPermissionMixin):
     def is_moderator(self):
         # TODO：求权限列表中的最大值
         # 数据库中permissions字段类型是字符串
-        return int(self.role.permissions) == 2
+        return int(self.role.level) == 2
 
     @property
     def is_admin(self):
-        return int(self.role.permissions) == 3
+        return int(self.role.level) == 3
 
     @property
     def is_superuser(self):
-        return int(self.role.permissions) == 4
-
-    # ActiveRecord method
-    def save(self):
-        db.session.add(self)
-        try:
-            db.session.commit()
-        except Exception, msg:
-            print('Error: Cannot save user, because ' + msg.message)
-            db.session.rollback()
-            return False
-        return True
+        return int(self.role.level) == 4
 
     def verify_password(self, password):
         return functions.check_password(password, self.password_hash)
@@ -175,12 +179,13 @@ class User(db.Model, UserLoginMixin, UserPermissionMixin):
         self.save()
 
 
-class Role(db.Model):
+class Role(db.Model, ActiveRecordMixin):
     __tablename__ = 'role'
     id = db.Column(db.INT, primary_key=True)
     name = db.Column(db.NVARCHAR(255), unique=True)
-    group = db.Column(db.INT, default=0)
     default = db.Column(db.BOOLEAN, default=False, index=True)
+    group = db.Column(db.INT, default=0)
+    level = db.Column(db.INT, default=0)
     permissions = db.Column(db.TEXT, unique=False)
     users = db.relationship('User', backref='role', lazy='dynamic')
 
@@ -190,7 +195,7 @@ class Role(db.Model):
         roles = (RolePerms.auth, RolePerms.moderator, RolePerms.admin, RolePerms.superuser)
 
         for r in roles:
-            role = Role.filter(Role.c.name == r.name).one()
+            role = Role.query.filter_by(name=r.name).first()
             if role is None:
                 role = Role(name=r.name)
 
@@ -205,29 +210,30 @@ class Role(db.Model):
     #     return Roles.filter(Roles.c.permissions == permission).one()
 
 
-class Permissions(db.Model):
+class PermissionCode(db.Model, ActiveRecordMixin):
     __tablename__ = 'permissions'
     id = db.Column(db.INT, primary_key=True)
-    parent_code = db.Column(db.INT, default=1, unique=False)
+    parent_code = db.Column(db.INT, default=0, unique=False)
     code = db.Column(db.TEXT, unique=False)
     name = db.Column(db.NVARCHAR(80), nullable=False)
     description = db.Column(db.TEXT)
 
     @staticmethod
-    def init_permissions():
+    def init_codes():
         """初始化Permission表数据"""
 
         default_pcode = 0
 
-        super_perm = Permissions.filter(Permissions.c.name == '超级权限').one()
+        # confirm if need init super code
+        super_perm = PermissionCode.query.filter_by(name=u'超级权限').first()
         if super_perm is None:
-            permission = Permissions(code="0", name='超级权限', pcode=default_pcode)
+            permission = PermissionCode(code="0", name=u'超级权限', parent_code=default_pcode)
             permission.save()
 
         from contrib.utils.functions import all_menber
-        for name, group in all_menber(AccessPerms).items():
-            for key, item in all_menber(group).items():
-                perm = Permissions.filter(Permissions.c.name == item.name).one()
+        for class_name, perm_class in all_menber(AccessPerms).items():
+            for key, item in all_menber(perm_class).items():
+                perm = PermissionCode.query.filter_by(name= item.name).first()
                 if perm is None:
                     if item.code % 100 == 0:
                         pcode = default_pcode
@@ -235,5 +241,9 @@ class Permissions(db.Model):
                         # pcode = (int(item.code / 100)) * 100
                         pcode = (item.code // 100) * 100
 
-                    permission = Permissions(code=item.code, name=item.name, parent_code=pcode)
+                    permission = PermissionCode(code=item.code, name=item.name, parent_code=pcode)
                     permission.save()
+
+
+# TODO: Role_Permission Table
+
