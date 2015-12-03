@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from flask import Flask
 from config import config
-from extensions import pages, bootstrap, db, login_manager, moment, mail, sendmail
+from extensions import (pages, bootstrap, db, login_manager, moment, mail, sendmail, configure_identity)
 
 
 def create_app(config_name):
@@ -42,6 +42,8 @@ def configure_extensions(app):
     login_manager.init_app(app)
     app.config['ext_login_manager'] = login_manager
 
+    configure_identity(app)
+
     moment.init_app(app)
 
     mail.init_app(app)
@@ -49,3 +51,4 @@ def configure_extensions(app):
 
     sendmail.init_app(app)
     app.config['contrib_sendmail'] = sendmail
+

@@ -47,8 +47,22 @@ pages = MyFlatPages()
 from flask.ext.sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
-from flask.ext.login import LoginManager
+from flask.ext.login import LoginManager, current_user
 login_manager = LoginManager()
+
+from flask.ext.principal import Principal, identity_loaded
+def configure_identity(app):
+    principal = Principal(app)
+
+    @identity_loaded.connect_via(app)
+    def on_identity_loaded(sender, identity):
+        # Set the identity user object
+        identity.user = current_user
+
+        # Add the Need Provider to the identity
+        if hasattr(current_user, 'id'):
+            identity.provides.update(current_user.provides)
+
 
 from flask.ext.bootstrap import Bootstrap
 bootstrap = Bootstrap()

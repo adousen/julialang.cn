@@ -6,10 +6,13 @@ __all__ = ['RoleNeeds', 'RolePerms', 'AccessNeeds', 'AccessPerms']
 
 from functools import partial, wraps
 from werkzeug.utils import cached_property
-from flask import abort, g
+from flask import abort, g, current_app
+from flask.signals import Namespace
 from flask.ext.principal import Principal, Identity, IdentityContext, \
     Permission, AnonymousIdentity, identity_changed, identity_loaded, \
     UserNeed, RoleNeed, ActionNeed, PermissionDenied, Need, namedtuple
+
+user_no_permission_signal = Namespace().signal('no-permission')
 
 
 class IdentityContextArgumentsError(ValueError):
@@ -22,37 +25,39 @@ class IdentityContextForManage(IdentityContext):
     """
     def __init__(self, permission, cls=None, http_exception=None):
         self.cls = cls
-        self.target_id = None
+        self.param_id = None
         super(IdentityContextForManage, self).__init__(permission, http_exception)
 
     def can(self):
         """Whether the identity has access to the permission
         """
-        if self.target_id is not None:
+        if self.param_id is not None:
             if self.cls is None:
                 raise IdentityContextArgumentsError()
 
-            obj = self.cls.query.get_by_id(self.target_id)
+            obj = self.cls.query.get_by_id(self.param_id)
 
             # 循环测试
-            retval = True
+            ret_val = True
             for need in self.permission.needs:
                 if need.method == "edit" and obj.permissions.edit:
-                    retval = True and retval
+                    ret_val = True and ret_val
 
                 elif need.method == "delete" and obj.permissions.delete:
-                    retval = True and retval
+                    ret_val = True and ret_val
 
                 elif need.method == "role":
                     if need.value == "admin" and obj.permissions.admin:  # need.group
-                        retval = True and retval
+                        ret_val = True and ret_val
                     else:
+                        user_no_permission_signal.send(current_app._get_current_object())
                         return False
                 else:
+                    user_no_permission_signal.send(current_app._get_current_object())
                     return False
 
                 # TODO: 继续添加其他管理操作
-            return retval
+            return ret_val
 
         return self.identity.can(self.permission)
 
@@ -60,7 +65,7 @@ class IdentityContextForManage(IdentityContext):
         @wraps(fn)
         def _decorated(*args, **kw):
             target_id = kw["id"]
-            self.target_id = target_id
+            self.param_id = target_id
             with self:
                 rv = fn(*args, **kw)
             return rv
@@ -79,8 +84,7 @@ class MangePermission(Permission):
         return IdentityContextForManage(self, cls, http_exception)
 
 
-# Need：定义系统中的各个权限字段
-# Permission：定义系统中的各个权限组
+# Need：定义基于角色的系统权限
 class RoleNeeds(object):
     """与系统中的各个角色相对应的权限字段（need）
     """
@@ -91,7 +95,7 @@ class RoleNeeds(object):
     superuser = RoleNeed('superuser')
 
 
-# Permissions：根据权限许可定义相应的系统角色
+# Permissions：根据相应的系统角色许可
 class RolePerms(object):
     """
     与系统中的各个角色相对应的权限组（permission）
@@ -129,6 +133,7 @@ class RolePerms(object):
     null = MangePermission(RoleNeed('null'))
 
 
+# Needs ：定义基于操作的系统权限
 ManageNeed = namedtuple('Manage', ['method', 'group'])
 
 EditNeed = partial(ManageNeed, 'edit')
@@ -137,7 +142,6 @@ DeleteNeed = partial(ManageNeed, 'delete')
 AddNeed = partial(ManageNeed, 'add')
 
 
-# Needs ：定义基于操作的权限字段
 # Permissions for more granular access control
 class AccessNeeds(object):
     """
@@ -167,44 +171,55 @@ class AccessPerms(object):
     """
     class User(object):
         manage = MangePermission(*AccessNeeds.User.allNeedsList)
-        manage.code = 200
+        manage.code = 100
+        manage.parent_code = 100
         manage.name = u'管理用户'
 
-        edit = MangePermission(AccessNeeds.User.editNeed)
-        edit.code = 201
-        edit.name = u'编辑用户信息'
-
         add = MangePermission(AccessNeeds.User.addNeed)
-        add.code = 202
+        add.code = 101
+        add.parent_code = 100
         add.name = u'添加用户'
 
+        delete = MangePermission(AccessNeeds.User.deleteNeed)
+        delete.code = 102
+        delete.parent_code = 100
+        delete.name = u'删除用户'
+
         lock = MangePermission(AccessNeeds.User.lockNeed)
-        lock.code = 203
+        lock.code = 141
+        lock.parent_code = 100
         lock.name = u'锁定用户'
 
-        delete = MangePermission(AccessNeeds.User.deleteNeed)
-        delete.code = 204
-        delete.name = u'删除用户'
+        edit = MangePermission(AccessNeeds.User.editNeed)
+        edit.code = 171
+        edit.parent_code = 100
+        edit.name = u'编辑用户信息'
+
 
     class Blog(object):
         manage = MangePermission(*AccessNeeds.Blog.allNeedsList)
         manage.code = 300
+        manage.parent_code = 300
         manage.name = u'管理文章'
 
-        add = MangePermission(AccessNeeds.Blog.editNeed)
-        add.code = 301
+        lock = MangePermission(AccessNeeds.Blog.lockNeed)
+        lock.code = 341
+        lock.parent_code = 300
+        lock.name = u'锁定文章'
+
+        add = MangePermission(AccessNeeds.Blog.addNeed)
+        add.code = 371
+        add.parent_code = 300
         add.name = u'添加文章'
 
         edit = MangePermission(AccessNeeds.Blog.editNeed)
-        edit.code = 302
+        edit.code = 372
+        edit.parent_code = 300
         edit.name = u'编辑文章'
 
-        lock = MangePermission(AccessNeeds.Blog.lockNeed)
-        lock.code = 303
-        lock.name = u'锁定文章'
-
         delete = MangePermission(AccessNeeds.Blog.deleteNeed)
-        delete.code = 304
+        delete.code = 373
+        delete.parent_code = 300
         delete.name = u'删除文章'
 
 

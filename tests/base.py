@@ -3,7 +3,7 @@
 # tests/base.py
 from flask.ext.testing import TestCase
 from project import create_app, db
-from project.apps.account.models import User, Role, PermissionCode
+from project.apps.account.models import User, Role, PermissionCode, CodeToRole
 
 
 class BaseTestCase(TestCase):
@@ -24,6 +24,7 @@ class BaseTestCase(TestCase):
         self.test_user = User(username=u'user',
                               email='user@test.com',
                               password='testing',
+                              confirmed=True,
                               )
         self.test_user.save()
 
@@ -36,5 +37,10 @@ class BaseTestCase(TestCase):
 
     def init_test_code_table(self):
         PermissionCode.init_data()
-        self.assertIsNotNone(PermissionCode.query.filter_by(code=200).first())
-        self.assertIsNotNone(PermissionCode.query.filter_by(code=300).first())
+        self.assertIsNotNone(PermissionCode.query.filter_by(code=u'100').first())
+        self.assertIsNotNone(PermissionCode.query.filter_by(code=u'300').first())
+
+    def init_test_code_to_role_table(self):
+        CodeToRole.init_data()
+        self.assertIsNotNone(CodeToRole.query.filter_by(permission_code=u'100').first())
+        self.assertIsNotNone(CodeToRole.query.filter_by(permission_code=u'300').first())

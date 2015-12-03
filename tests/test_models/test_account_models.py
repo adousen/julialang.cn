@@ -10,7 +10,7 @@
 """
 from tests.base import BaseTestCase
 
-from project.apps.account.models import User, Role, PermissionCode
+from project.apps.account.models import User, Role, PermissionCode, CodeToRole
 
 
 class UserModelTests(BaseTestCase):
@@ -82,6 +82,7 @@ class UserModelTests(BaseTestCase):
         self.assertTrue(test_user.is_moderator)
 
 
+
 class RoleModelTests(BaseTestCase):
     def test_add_role(self):
         test_role = Role(name=u"System Tester", level=1)
@@ -94,9 +95,9 @@ class RoleModelTests(BaseTestCase):
 
 class PermissionCodeModelTests(BaseTestCase):
     def test_add_code(self):
-        test_code = PermissionCode(name=u"测试操作", code=100)
+        test_code = PermissionCode(name=u"测试操作", code=50)
         self.assertTrue(test_code.save())
-        self.assertIsNotNone(PermissionCode.query.filter_by(code=100).first())
+        self.assertIsNotNone(PermissionCode.query.filter_by(code=u'50').first())
 
     def test_init_codes(self):
         self.init_test_code_table()
@@ -109,7 +110,8 @@ class CodeToRoleModelTests(BaseTestCase):
         self.init_test_code_table()
         
     def test_add_new(self):
-        PermissionCode(name=u"测试操作", code=100)
+        self.assertTrue(CodeToRole(role_level=1, permission_code=300).save())
+        self.assertIsNotNone(CodeToRole.query.filter_by(permission_code=u'300').first())
 
 
 class CodeToUser(BaseTestCase):
@@ -117,4 +119,7 @@ class CodeToUser(BaseTestCase):
         super(CodeToUser, self).setUp()
         self.init_test_role_table()
         self.init_test_code_table()
+
+    def test_add_new(self):
+        pass
 

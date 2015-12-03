@@ -86,7 +86,7 @@ def register():
 '''
 @account.route('/confirm/<token>')
 def confirm(token):
-    if current_user.is_authenticated:
+    if current_user.is_authenticated():
         user_id = token_confirm(token, current_app.config['SECRET_KEY'])
         if not user_id:
             redirect(url_for('main.index'))
