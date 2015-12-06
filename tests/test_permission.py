@@ -17,7 +17,7 @@ from flask.signals import Namespace
 from werkzeug.exceptions import HTTPException
 from flask.ext.principal import identity_changed, Identity, PermissionDenied
 
-from project.permissions import RolePerms, AccessPerms
+from project.permissions import RolePerms, CodePerms
 
 
 class PermissionTests(BaseTestCase):
@@ -54,7 +54,7 @@ class PermissionTests(BaseTestCase):
         self.assertTrue(current_user.is_authenticated(), "Should not go here without login!")
         return True
 
-    @AccessPerms.User.edit.require(User, 403)
+    @CodePerms.User.EDIT.require(User, 403)
     def edit_user_profile_route(self, id):
         return True
 
@@ -70,7 +70,7 @@ class PermissionTests(BaseTestCase):
 
         #
 
-    def test_No_Edit_Profile_Permission(self):
+    def test_normal_user_no_permission_to_edit_profile_throws_HTTPException(self):
         # a superuser
         one_user = User(username=u'normal_user', email='normal_user@test.com', password='testing',
                           role_id=Role.query.filter_by(name=u"auth").first().id, confirmed=True)
@@ -85,7 +85,7 @@ class PermissionTests(BaseTestCase):
         identity_changed.send(self.app, identity=Identity(test_normal_user.id))
         self.assertRaises(HTTPException, self.edit_user_profile_route, id=one_user.id)
 
-    def test_Edit_Self_Profile_Permission(self):
+    def test_permission_of_someone_to_edit_self_profile(self):
         # a superuser
         test_normal_user = User(username=u'normal_user', email='normal_user@test.com', password='testing',
                          role_id=Role.query.filter_by(name=u"auth").first().id, confirmed=True)
@@ -94,11 +94,17 @@ class PermissionTests(BaseTestCase):
         identity_changed.send(self.app, identity=Identity(test_normal_user.id))
         self.assertTrue(self.edit_user_profile_route(id=test_normal_user.id))
 
-    def test_Edit_Profile_Permission(self):
-        # a superuser
+    def test_permission_of_superuser_to_edit_profile(self):
+        """Confirm superuser can edit anyone's profile"""
+        one_user = User(username=u'normal_user', email='normal_user@test.com', password='testing',
+                          role_id=Role.query.filter_by(name=u"auth").first().id, confirmed=True)
         test_superuser = User(username=u'superuser', email='superuser@test.com', password='testing',
                          role_id=Role.query.filter_by(name=u"Superuser").first().id, confirmed=True)
+        one_user.save()
         test_superuser.save()
         login_user(test_superuser)
         identity_changed.send(self.app, identity=Identity(test_superuser.id))
-        self.assertTrue(self.edit_user_profile_route(id=test_superuser.id))
+        try:
+            self.assertTrue(self.edit_user_profile_route(id=one_user.id))
+        except HTTPException, e:
+            self.assertFalse(True, "Catch an Error, superuser has no Permission!")

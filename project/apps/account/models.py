@@ -2,17 +2,19 @@
 # -*- coding: utf-8 -*-
 import hashlib
 from datetime import datetime
+from functools import partial
+
 from werkzeug.utils import cached_property
 from flask.ext.principal import Permission, UserNeed
 from flask import url_for
 from flask.ext.login import UserMixin
 
-from project import db
-
 from contrib.utils import identicon
 from contrib.utils import functions
-from project.permissions import RoleNeeds, RolePerms, AccessNeeds, AccessPerms
 from contrib.utils.functions import all_menber
+
+from project import db
+from project.permissions import RoleNeeds, RolePerms, CodePerms, ManageNeed
 
 
 class ActiveRecordMixin(object):
@@ -41,13 +43,9 @@ class UserPermissionMixin(object):
         def __init__(self, obj):
             self.obj = obj
 
-        @cached_property
-        def edit(self):
-            return Permission(UserNeed(self.obj.id)) or RolePerms.admin
-
-        @cached_property
-        def admin(self):
-            return RolePerms.admin
+        def can(self, method):
+            """判断是否允许被用户自己进行操作"""
+            return Permission(UserNeed(self.obj.id))
 
     @cached_property
     def permissions(self):
@@ -56,18 +54,13 @@ class UserPermissionMixin(object):
     # Permission Provides
     @cached_property
     def provides(self):
-        # TODO: 从数据库初始化用户管理操作权限
+        # 从数据库初始化用户管理操作权限
         needs = [RoleNeeds.auth, UserNeed(self.id)]
-
-        # TODO: 根据codetorole表的权限分配加载
-        if self.is_moderator:
-            print "cur permission is: moderator"
-            needs.append(RoleNeeds.moderator)
-            needs.extend(AccessNeeds.Blog.allNeedsList)
-
-        if self.is_admin:
-            needs.append(RoleNeeds.admin)
-            needs.extend(AccessNeeds.Blog.allNeedsList)
+        needs.extend([UserNeed(self.id)])
+        # 根据code_to_role表的权限分配加载
+        records = CodeToRole.query.get_all_by_role_level(self.role.level)
+        for record in records:
+            needs.extend([partial(ManageNeed, record.method)(record.permission_code)])
 
         return needs
 
@@ -228,7 +221,7 @@ class PermissionCode(db.Model, ActiveRecordMixin):
             permission = PermissionCode(code="0", name=u'超级权限', parent_code=default_pcode)
             permission.save()
 
-        for class_name, perm_class in all_menber(AccessPerms).items():
+        for class_name, perm_class in all_menber(CodePerms).items():
             for key, item in all_menber(perm_class).items():
                 perm = PermissionCode.query.filter_by(name=item.name).first()
                 if perm is None:
@@ -242,33 +235,49 @@ class PermissionCode(db.Model, ActiveRecordMixin):
                     permission.save()
 
 
+class CodeToRoleQuery(db.Query):
+    # utils
+    @staticmethod
+    def get_all_by_role_level(level):
+        return CodeToRole.query.filter_by(role_level=level).all()
+
+
 class CodeToRole(db.Model, ActiveRecordMixin):
+    query_class = CodeToRoleQuery
     __tablename__ = 'code_to_role'
     id = db.Column(db.Integer, primary_key=True)
     role_level = db.Column(db.INT)
     permission_code = db.Column(db.INT)
+    method = db.Column(db.NVARCHAR(20))
 
     @staticmethod
     def init_data():
         def init_superuser():
-            for class_name, perm_class in all_menber(AccessPerms).items():
-                for key, item in all_menber(perm_class).items():
-                    CodeToRole(role_level=RolePerms.superuser.level,permission_code=item.code).save()
+            existed_super_level = CodeToRole.query.filter_by(role_level=1).first()
+            if existed_super_level is None:
+                for class_name, perm_class in all_menber(CodePerms).items():
+                    for key, item in all_menber(perm_class).items():
+                        CodeToRole(role_level=RolePerms.superuser.level, permission_code=item.code, method=item.method).save()
 
         def init_admin():
-            for class_name, perm_class in all_menber(AccessPerms).items():
-                for key, item in all_menber(perm_class).items():
-                    CodeToRole(role_level=RolePerms.admin.level,permission_code=item.code).save()
+            existed_admin_level = CodeToRole.query.filter_by(role_level=2).first()
+            if existed_admin_level is None:
+                for class_name, perm_class in all_menber(CodePerms).items():
+                    for key, item in all_menber(perm_class).items():
+                        CodeToRole(role_level=RolePerms.admin.level,permission_code=item.code, method=item.method).save()
 
         def init_moderator():
-            for class_name, perm_class in all_menber(AccessPerms).items():
-                for key, item in all_menber(perm_class).items():
-                    if item.code > 140:
-                        CodeToRole(role_level=RolePerms.moderator.level,permission_code=item.code).save()
+            existed_moderator_level = CodeToRole.query.filter_by(role_level=3).first()
+            if existed_moderator_level is None:
+                for class_name, perm_class in all_menber(CodePerms).items():
+                    for key, item in all_menber(perm_class).items():
+                        if item.code > 140:
+                            CodeToRole(role_level=RolePerms.moderator.level,permission_code=item.code, method=item.method).save()
 
         init_superuser()
         init_admin()
         init_moderator()
+
 
 class CodeToUser(db.Model, ActiveRecordMixin):
     __tablename__ = 'code_to_user'

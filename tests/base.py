@@ -42,5 +42,5 @@ class BaseTestCase(TestCase):
 
     def init_test_code_to_role_table(self):
         CodeToRole.init_data()
-        self.assertIsNotNone(CodeToRole.query.filter_by(permission_code=u'100').first())
-        self.assertIsNotNone(CodeToRole.query.filter_by(permission_code=u'300').first())
+        self.assertIsNotNone(CodeToRole.query.filter_by(permission_code=u'101').first())
+        self.assertIsNotNone(CodeToRole.query.filter_by(permission_code=u'341').first())
