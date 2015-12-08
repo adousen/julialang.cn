@@ -7,34 +7,14 @@ from functools import partial
 from werkzeug.utils import cached_property
 from flask.ext.principal import Permission, UserNeed
 from flask import url_for
-from flask.ext.login import UserMixin
 
 from contrib.utils import identicon
 from contrib.utils import functions
 from contrib.utils.functions import all_menber
 
 from project import db
+from project.mixins import ActiveRecordMixin, UserLoginMixin
 from project.permissions import RoleNeeds, RolePerms, CodePerms, ManageNeed
-
-
-class ActiveRecordMixin(object):
-    def __init__(self, *args, **kwargs):
-        pass
-
-    # ActiveRecord method
-    def save(self):
-        db.session.add(self)
-        try:
-            db.session.commit()
-        except Exception, msg:
-            print('Error: Cannot save %s object, because ' % self.__class__ + msg.message)
-            db.session.rollback()
-            return False
-        return True
-
-
-class UserLoginMixin(UserMixin):
-    pass
 
 
 class UserPermissionMixin(object):
@@ -86,27 +66,27 @@ class UserQuery(db.Query):
         return User.query.filter_by(email=email).first()
 
     @staticmethod
-    def get_by_id(userid):
-        return User.query.filter_by(id=userid).first()
+    def get_by_id(user_id):
+        return User.query.filter_by(id=user_id).first()
 
-    @classmethod
-    def is_email_exist(cls, email):
+    @staticmethod
+    def is_email_exist(email):
         user = User.query.filter_by(email=email).first()
         if user:
             return True
         else:
             return False
 
-    @classmethod
-    def is_username_exist(cls, username):
+    @staticmethod
+    def is_username_exist(username):
         user = User.query.filter_by(username=username).first()
         if user:
             return True
         else:
             return False
 
-    @classmethod
-    def is_nickname_exist(cls, nickname):
+    @staticmethod
+    def is_nickname_exist(nickname):
         user = User.query.filter_by(nickname=nickname).first()
         if user:
             return True
@@ -172,12 +152,12 @@ class User(db.Model, ActiveRecordMixin, UserLoginMixin, UserPermissionMixin):
 class Role(db.Model, ActiveRecordMixin):
     __tablename__ = 'role'
     id = db.Column(db.INT, primary_key=True)
-    name = db.Column(db.NVARCHAR(255), unique=True)
+    name = db.Column(db.NVARCHAR(50), unique=True)
     default = db.Column(db.BOOLEAN, default=False, index=True)
     group = db.Column(db.INT, default=1)   # 当角色有多个分组时使用，可用于未来扩展，默认为1
     level = db.Column(db.INT, default=1000)   # 角色的权限等级，值越小权限越大
     permissions = db.Column(db.TEXT, unique=False)  # deprecated
-    users = db.relationship('User', backref='role')
+    users = db.relationship('User', backref='role', lazy="dynamic")
 
     @staticmethod
     def init_data():
@@ -206,7 +186,7 @@ class PermissionCode(db.Model, ActiveRecordMixin):
     id = db.Column(db.INT, primary_key=True)
     code = db.Column(db.TEXT, unique=False)  # 权限编码
     parent_code = db.Column(db.TEXT, default=0, unique=False)  # 父级权限编码
-    name = db.Column(db.NVARCHAR(80), nullable=False)
+    name = db.Column(db.NVARCHAR(50), nullable=False)
     description = db.Column(db.TEXT)
 
     @staticmethod

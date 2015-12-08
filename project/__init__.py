@@ -24,6 +24,9 @@ def create_app(config_name):
     from apps.account import account as account_blueprint
     app.register_blueprint(account_blueprint, url_prefix='/account')
 
+    from apps.resource import resource as resource_blueprint
+    app.register_blueprint(resource_blueprint, url_prefix='/resource')
+
     from apps.community import community as community_blueprint
     app.register_blueprint(community_blueprint, url_prefix='/community')
 

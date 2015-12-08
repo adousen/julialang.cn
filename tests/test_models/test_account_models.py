@@ -89,8 +89,17 @@ class RoleModelTests(BaseTestCase):
         self.assertTrue(test_role.save())
         self.assertIsNotNone(Role.query.filter_by(name=u"System Tester").first())
 
-    def test_init_roles(self):
+    def test_find_all_users_of_a_role(self):
         self.init_test_role_table()
+        test_user1 = User(username=u'tester1', email='tester1@test.com', password='testing',
+                         role_id=Role.query.filter_by(name=u"Superuser").first().id)
+        test_user1.save()
+
+        test_user2 = User(username=u'tester2', email='tester2@test.com', password='testing',
+                         role_id=Role.query.filter_by(name=u"Superuser").first().id)
+        test_user2.save()
+
+        self.assertEqual(Role.query.filter_by(name=u"Superuser").first().users[0].username, u'tester1')
 
 
 class PermissionCodeModelTests(BaseTestCase):

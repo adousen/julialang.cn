@@ -47,7 +47,7 @@ class PermissionTests(BaseTestCase):
 
         @user_no_permission_signal.connect_via(self.app)
         def no_permission_signal(app, user=None):
-            self.no_permission_handled = True
+            self.no_permission_handled = True  # not used
 
     @login_required
     def do_something_need_unauthorized(self):
