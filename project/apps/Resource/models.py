@@ -20,8 +20,8 @@ class Resource(db.Model, ActiveRecordMixin):
     query_class = ResourceQuery
     __tablename__ = 'resource'
     id = db.Column(db.INT, primary_key=True)
-    author_id = db.Column(db.INT, db.ForeignKey('user.id'))
-    title = db.Column(db.NVARCHAR(50))
+    author_id = db.Column(db.INT, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.NVARCHAR(50), nullable=False)
     subtitle = db.Column(db.NVARCHAR(50))
     category_id = db.Column(db.INT, db.ForeignKey('resource_category.id'))
     content = db.Column(db.TEXT, nullable=True)
@@ -39,7 +39,7 @@ class Category(db.Model, ActiveRecordMixin):
     __tablename__ = 'resource_category'
     id = db.Column(db.INT, primary_key=True)
     name = db.Column(db.NVARCHAR(50))
-    is_recommended = db.Column(db.BOOLEAN)
+    is_recommended = db.Column(db.BOOLEAN, default=False)
 
 
 class TagToResource(db.Model, ActiveRecordMixin):
@@ -51,11 +51,12 @@ class TagToResource(db.Model, ActiveRecordMixin):
 
 class ResourceTag(db.Model, ActiveRecordMixin):
     __tablename__ = 'resource_tag'
-    """资源频道标签实体类"""
+    """标签实体类"""
     id = db.Column(db.INT, primary_key=True)
     name = db.Column(db.NVARCHAR(50))
     creator_id = db.Column(db.INT, db.ForeignKey('user.id'))
-    resource_items = db.relationship('resource', secondary=TagToResource.__table__, query_class=ResourceQuery)
+    description = db.Column(db.TEXT)
+    resources = db.relationship('Resource', secondary=TagToResource.__table__, query_class=ResourceQuery)
 
 
 
